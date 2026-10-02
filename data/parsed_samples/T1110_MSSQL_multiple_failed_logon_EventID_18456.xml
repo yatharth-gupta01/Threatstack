@@ -1,0 +1,192 @@
+<Events>
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.171339+00:00"></TimeCreated>
+<EventRecordID>13026</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;sa&lt;/string&gt;
+&lt;string&gt; Reason: Password did not match that for the login provided.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.187637+00:00"></TimeCreated>
+<EventRecordID>13027</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;##MS_SQLResourceSigningCertificate##&lt;/string&gt;
+&lt;string&gt; Reason: Attempting to use an NT account name with SQL Server Authentication.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.202730+00:00"></TimeCreated>
+<EventRecordID>13028</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;##MS_SQLReplicationSigningCertificate##&lt;/string&gt;
+&lt;string&gt; Reason: Attempting to use an NT account name with SQL Server Authentication.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.202730+00:00"></TimeCreated>
+<EventRecordID>13029</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;##MS_SQLAuthenticatorCertificate##&lt;/string&gt;
+&lt;string&gt; Reason: Attempting to use an NT account name with SQL Server Authentication.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.222452+00:00"></TimeCreated>
+<EventRecordID>13030</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;##MS_PolicySigningCertificate##&lt;/string&gt;
+&lt;string&gt; Reason: Attempting to use an NT account name with SQL Server Authentication.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.233944+00:00"></TimeCreated>
+<EventRecordID>13031</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;##MS_SmoExtendedSigningCertificate##&lt;/string&gt;
+&lt;string&gt; Reason: Attempting to use an NT account name with SQL Server Authentication.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.248423+00:00"></TimeCreated>
+<EventRecordID>13032</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;##MS_PolicyEventProcessingLogin##&lt;/string&gt;
+&lt;string&gt; Reason: An error occurred while evaluating the password.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.248882+00:00"></TimeCreated>
+<EventRecordID>13033</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;##MS_PolicyTsqlExecutionLogin##&lt;/string&gt;
+&lt;string&gt; Reason: An error occurred while evaluating the password.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.266434+00:00"></TimeCreated>
+<EventRecordID>13034</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;##MS_AgentSigningCertificate##&lt;/string&gt;
+&lt;string&gt; Reason: Attempting to use an NT account name with SQL Server Authentication.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER"></Provider>
+<EventID Qualifiers="49152">18456</EventID>
+<Level>0</Level>
+<Task>4</Task>
+<Keywords>0x0090000000000000</Keywords>
+<TimeCreated SystemTime="2019-11-04 13:46:01.279825+00:00"></TimeCreated>
+<EventRecordID>13035</EventRecordID>
+<Channel>Application</Channel>
+<Computer>MSEDGEWIN10</Computer>
+<Security UserID=""></Security>
+</System>
+<EventData><Data>&lt;string&gt;root&lt;/string&gt;
+&lt;string&gt; Reason: Password did not match that for the login provided.&lt;/string&gt;
+&lt;string&gt; [CLIENT: 10.0.2.17]&lt;/string&gt;
+</Data>
+<Binary>GEgAAA4AAAAMAAAATQBTAEUARABHAEUAVwBJAE4AMQAwAAAABwAAAG0AYQBzAHQAZQByAAAA</Binary>
+</EventData>
+</Event>
+
+</Events>

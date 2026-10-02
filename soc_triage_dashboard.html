@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<!-- DATA SOURCE: edit the <script id="dashboard-data"> block near the bottom of this file to update all dashboard values. -->
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SOC Triage Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-container-highest": "#30353d", "on-error": "#690005",
+          "primary-container": "#4d9eff", "inverse-primary": "#005fae",
+          "surface-container-lowest": "#090f15", "surface-bright": "#343941",
+          "inverse-on-surface": "#2c3138", "primary-fixed-dim": "#a5c8ff",
+          "surface": "#0f141b", "tertiary-container": "#d68d00",
+          "on-tertiary-fixed": "#291800", "secondary-fixed-dim": "#ffb3b0",
+          "tertiary": "#ffb955", "on-primary-fixed": "#001c3a",
+          "surface-variant": "#30353d", "on-surface": "#dee2ec",
+          "on-secondary-fixed-variant": "#92011a", "on-tertiary-fixed-variant": "#633f00",
+          "on-tertiary": "#452b00", "on-error-container": "#ffdad6",
+          "inverse-surface": "#dee2ec", "secondary": "#ffb3b0",
+          "background": "#0f141b", "primary": "#a5c8ff",
+          "on-background": "#dee2ec", "on-secondary": "#68000f",
+          "primary-fixed": "#d4e3ff", "surface-container": "#1b2027",
+          "surface-container-low": "#171c23", "on-surface-variant": "#c1c7d4",
+          "error-container": "#93000a", "error": "#ffb4ab",
+          "on-primary-container": "#003464", "surface-container-high": "#252a32",
+          "secondary-fixed": "#ffdad8", "on-primary-fixed-variant": "#004785",
+          "tertiary-fixed-dim": "#ffb955", "on-secondary-container": "#ff9996",
+          "secondary-container": "#92011a", "on-primary": "#00315e",
+          "surface-tint": "#a5c8ff", "outline-variant": "#414752",
+          "on-tertiary-container": "#4a2e00", "outline": "#8b919e",
+          "on-secondary-fixed": "#410006", "tertiary-fixed": "#ffddb4",
+          "surface-dim": "#0f141b"
+        },
+        borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        spacing: {
+          "margin": "1.5rem", "gutter": "1rem", "space-xs": "0.25rem",
+          "margin-mobile": "1rem", "space-xl": "2rem", "space-md": "0.75rem",
+          "space-lg": "1.25rem", "space-sm": "0.5rem", "gutter-mobile": "0.75rem"
+        },
+        fontFamily: {
+          serif: ['Fraunces', 'serif'],
+          mono: ['"IBM Plex Mono"', 'monospace']
+        },
+        fontSize: {
+          "headline-xl-mobile": ["28px", { lineHeight:"36px", letterSpacing:"-0.01em", fontWeight:"600" }],
+          "headline-xl":        ["36px", { lineHeight:"44px", letterSpacing:"-0.02em", fontWeight:"600" }],
+          "label-sm":           ["10px", { lineHeight:"14px", letterSpacing:"0.05em",  fontWeight:"400" }],
+          "body-sm":            ["12px", { lineHeight:"16px", fontWeight:"400" }],
+          "body-lg":            ["16px", { lineHeight:"24px", fontWeight:"400" }],
+          "body-md":            ["14px", { lineHeight:"20px", fontWeight:"400" }],
+          "headline-lg":        ["24px", { lineHeight:"32px", letterSpacing:"-0.01em", fontWeight:"600" }],
+          "label-md":           ["11px", { lineHeight:"16px", letterSpacing:"0.04em",  fontWeight:"500" }],
+          "headline-sm":        ["16px", { lineHeight:"24px", fontWeight:"600" }],
+          "headline-md":        ["20px", { lineHeight:"28px", letterSpacing:"-0.005em",fontWeight:"600" }],
+          "label-lg":           ["13px", { lineHeight:"18px", letterSpacing:"0.02em",  fontWeight:"500" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    display: inline-block; vertical-align: middle; line-height: 1;
+  }
+  .tactical-grid {
+    background-size: 28px 28px;
+    background-image:
+      linear-gradient(to right,  rgba(48,53,61,0.25) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(48,53,61,0.25) 1px, transparent 1px);
+  }
+  /* ---------- Accordion ---------- */
+  .incident-body {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height 200ms ease-out,
+                opacity 200ms ease-out,
+                padding 200ms ease-out;
+  }
+  .incident-body.open  { max-height: 600px; opacity: 1; }
+  .incident-card.open  { border-color: rgba(77,158,255,0.45) !important; background-color: #1C2128 !important; }
+  .chevron { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); flex-shrink: 0; }
+  .incident-card.open .chevron { transform: rotate(180deg); }
+  .raw-alert-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 5px 0; border-bottom: 1px solid #21262D;
+  }
+  .raw-alert-row:last-child { border-bottom: none; }
+  /* ---------- Charts ---------- */
+  
+  
+  /* ---------- Loading spinner ---------- */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 2px solid rgba(77,158,255,0.2);
+    border-top-color: #4D9EFF;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes scan-reveal {
+      from { clip-path: inset(0 100% 0 0); }
+      to { clip-path: inset(0 0 0 0); }
+    }
+    @keyframes border-flash {
+      0% { border-color: var(--sev-color); }
+      100% { border-color: #3A332B; }
+    }
+    @keyframes fast-fade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .new-incident {
+      animation: scan-reveal 450ms ease-out forwards, border-flash 2s ease-out 450ms forwards;
+    }
+    .animate-filter {
+      animation: fast-fade 150ms ease-out forwards;
+    }
+    
+    .bar-fill { transition: height 600ms ease-out; }
+    circle.donut-seg { transition: stroke-dasharray 600ms ease-out, stroke-dashoffset 600ms ease-out; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .new-incident { animation: none !important; }
+    .animate-filter { animation: none !important; }
+    .bar-fill { transition: none !important; }
+    circle.donut-seg { transition: none !important; }
+  }
+
+  .paper-grain {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 9999; opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+</style>
+</head>
+
+<div class="paper-grain"></div>
+<body class="bg-[#14110F] text-on-surface antialiased min-h-screen flex flex-col font-mono text-[14px] selection:bg-primary-container selection:text-surface-container-lowest">
+
+<!--
+  Tailwind CDN safelist — keeps severity color classes in the stylesheet
+  so they are available when JS dynamically injects HTML.
+-->
+<div class="hidden" aria-hidden="true">
+  <span class="bg-[#C1442E]/15 text-[#C1442E] border-[#C1442E]/30 "></span>
+  <span class="bg-[#C98A2C]/15 text-[#C98A2C] border-[#C98A2C]/30 "></span>
+  <span class="bg-[#4C7A6B]/15 text-[#4C7A6B] border-[#4C7A6B]/30 "></span>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     HEADER (always visible — static)
+══════════════════════════════════════════════ -->
+
+<header class="w-full bg-[#1E1A16] border-b border-[#3A332B] px-margin py-4 sticky top-0 z-50 flex items-center justify-between">
+  <div class="flex flex-col">
+    <span class="font-mono text-[10px] text-[#8B949E] mb-1">// FIELD INTELLIGENCE BRIEFING</span>
+    <h1 class="font-serif text-[24px] font-bold text-[#EDE6D6]">Incident Log</h1>
+  </div>
+  <div class="flex items-center space-x-5">
+    <div class="flex items-center space-x-2 px-2.5 py-1 bg-[#14110F] border border-[#3A332B] rounded-sm">
+      <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full bg-[#4C7A6B] opacity-75"></span>
+        <span class="relative inline-flex h-2 w-2 bg-[#4C7A6B]"></span>
+      </span>
+      <span class="font-mono text-[11px] text-[#4C7A6B] font-semibold">Monitoring</span>
+    </div>
+    <div class="flex items-center space-x-1.5 text-[#8B949E] border-l border-[#3A332B] pl-4">
+      <span class="material-symbols-outlined text-[15px]">schedule</span>
+      <span class="font-mono text-[11px] text-[#EDE6D6]" id="live-utc">--:--:--</span>
+      <span class="font-mono text-[9px]">UTC</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════
+     MAIN CANVAS
+══════════════════════════════════════════════ -->
+<main class="w-full max-w-[1720px] mx-auto px-margin py-space-lg flex-1 flex flex-col gap-space-lg tactical-grid">
+
+  <!-- ── Loading state ── -->
+  <div id="state-loading" class="flex flex-col items-center justify-center py-28 gap-5">
+    <div class="spinner"></div>
+    <p class="font-mono text-[11px] text-[#8B949E]">Loading incident data…</p>
+  </div>
+
+  <!-- ── Empty / error state (hidden by default) ── -->
+  <div id="state-empty" style="display:none" class="flex flex-col items-center justify-center py-28 gap-4 bg-[#1E1A16] border border-[#3A332B] rounded-sm">
+    <span class="material-symbols-outlined text-[52px] text-[#30363D]">shield</span>
+    <p class="font-serif text-[20px] text-[#EDE6D6]">No incidents to display</p>
+    <p class="font-mono text-[14px] text-[#8B949E] text-center max-w-sm">The incident feed is empty or <code class="font-mono text-[10px] bg-[#0D1117] px-1.5 py-0.5 rounded border border-[#3A332B] text-[#EDE6D6]">dashboard_data.json</code> could not be loaded.</p>
+  </div>
+
+  <!-- ── Dashboard content (hidden until data is ready) ── -->
+  <div id="state-dashboard" style="display:none" class="flex flex-col gap-space-lg">
+
+    <!-- 1. HERO STAT -->
+    <section class="w-full bg-[#1E1A16] border border-[#3A332B] rounded-sm p-space-lg relative overflow-hidden text-center ">
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+        <div class="w-[500px] h-32 bg-[#4D9EFF] blur-[90px] rounded-sm"></div>
+      </div>
+      <div class="relative z-10 flex flex-col items-center justify-center space-y-1.5">
+        <div class="flex items-center justify-center space-x-3 sm:space-x-5 flex-wrap">
+          <span id="hero-alerts" class="font-serif text-[42px] md:text-[42px] font-bold text-[#EDE6D6]">—</span>
+          <span class="font-serif text-[42px] text-[#8B949E] font-light">→</span>
+          <span class="font-serif text-[42px] md:text-[42px] font-bold text-[#4C7A6B] flex items-center gap-2">
+            <span id="hero-incidents">—</span>
+            <span class="material-symbols-outlined text-[28px] text-[#4C7A6B]">auto_awesome</span>
+          </span>
+        </div>
+        <p id="hero-subtitle" class="font-mono text-[14px] text-[#8B949E] max-w-xl"></p>
+      </div>
+    </section>
+
+    <!-- 2. KPI CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+      <!-- KPI 1 -->
+      <div class="bg-[#1E1A16] border border-[#3A332B] rounded-sm p-5 relative overflow-hidden flex flex-col justify-between hover:border-[#3A332B] transition-colors ">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[11px] text-[#8B949E]">Total Alerts Today</span>
+          <span class="material-symbols-outlined text-outline text-[18px]">notifications_active</span>
+        </div>
+        <div class="flex items-baseline justify-between mt-1">
+          <span id="kpi-alerts" class="font-serif text-[42px] font-bold text-[#EDE6D6]">—</span>
+          <span class="font-mono text-[10px] text-[#8B949E] flex items-center bg-[#0D1117] px-2 py-0.5 rounded border border-[#3A332B]">Raw Event Feed</span>
+        </div>
+      </div>
+      <!-- KPI 2 -->
+      <div class="bg-[#1E1A16] border border-[#3A332B] rounded-sm p-5 relative overflow-hidden flex flex-col justify-between hover:border-[#3A332B] transition-colors ">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[11px] text-[#8B949E]">Incidents After Clustering</span>
+          <span class="material-symbols-outlined text-[#4C7A6B] text-[18px]">hub</span>
+        </div>
+        <div class="flex items-baseline justify-between mt-1">
+          <span id="kpi-incidents" class="font-serif text-[42px] font-bold text-[#4C7A6B]">—</span>
+          <span id="kpi-density" class="font-mono text-[10px] text-[#4C7A6B] flex items-center bg-[#4C7A6B]/10 border border-[#4C7A6B]/30 px-2 py-0.5 rounded">—</span>
+        </div>
+      </div>
+      <!-- KPI 3 -->
+      <div class="bg-[#1E1A16] border border-[#3A332B] rounded-sm p-5 relative overflow-hidden flex flex-col justify-between hover:border-[#C1442E]/40 transition-colors ">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[11px] text-[#8B949E]">High Severity Open</span>
+          <span class="material-symbols-outlined text-[#C1442E] text-[18px]">warning</span>
+        </div>
+        <div class="flex items-baseline justify-between mt-1">
+          <span id="kpi-high" class="font-serif text-[42px] font-bold text-[#C1442E]">—</span>
+          <span class="font-mono text-[10px] text-[#C1442E] flex items-center bg-[#C1442E]/10 border border-[#C1442E]/30 px-2 py-0.5 rounded">Requires Triage</span>
+        </div>
+      </div>
+      <!-- KPI 4 -->
+      <div class="bg-[#1E1A16] border border-[#3A332B] rounded-sm p-5 relative overflow-hidden flex flex-col justify-between hover:border-[#3A332B] transition-colors ">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-mono text-[11px] text-[#8B949E]">Triage Time Saved</span>
+          <span class="material-symbols-outlined text-[#4C7A6B] text-[18px]">speed</span>
+        </div>
+        <div class="flex items-baseline justify-between mt-1">
+          <span id="kpi-saved" class="font-serif text-[42px] font-bold text-[#4C7A6B]">—</span>
+          <span id="kpi-mttr" class="font-mono text-[10px] text-[#8B949E] flex items-center bg-[#0D1117] px-2 py-0.5 rounded border border-[#3A332B]">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. TWO-COLUMN SECTION -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+
+      <!-- LEFT: Incident Feed -->
+      <div class="lg:col-span-8 flex flex-col space-y-space-md">
+        <!-- Feed header + filters -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#1E1A16] p-4 rounded-sm border border-[#3A332B]">
+          <div class="flex items-center space-x-3">
+            <h2 class="font-serif text-[20px] font-bold text-[#EDE6D6]">Incident Feed</h2>
+            <span id="feed-badge" class="px-2 py-0.5 rounded-sm bg-[#14110F] text-[#8B949E] font-mono text-[11px] border border-[#3A332B]">0 Queued</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <!-- Custom Severity Dropdown -->
+            <div class="relative inline-block text-left" id="dropdown-sev">
+              <button type="button" onclick="toggleDropdown('menu-sev')" class="bg-[#14110F] hover:bg-[#1E1A16] text-[#EDE6D6] hover:text-[#EDE6D6] px-3 py-1.5 rounded-sm border border-[#3A332B] font-mono text-[12px] flex items-center space-x-1.5 transition-colors">
+                <span>Severity <span id="sev-count" class="text-[#C98A2C] font-medium"></span></span>
+                <span class="material-symbols-outlined text-[16px] opacity-70">arrow_drop_down</span>
+              </button>
+              <div id="menu-sev" class="hidden absolute right-0 sm:left-0 z-50 mt-2 w-40 origin-top-right sm:origin-top-left rounded-sm bg-[#1E1A16] border border-[#3A332B] shadow-none focus:outline-none overflow-hidden">
+                <div class="py-1">
+                  <label class="flex items-center px-4 py-2 text-sm text-[#EDE6D6] hover:bg-[#14110F] cursor-pointer transition-colors">
+                    <input type="checkbox" value="High" class="mr-3 rounded border-[#3A332B] bg-[#0D1117] accent-[#C1442E] focus:ring-[#C1442E] filter-sev" onchange="applyFilters()"> High
+                  </label>
+                  <label class="flex items-center px-4 py-2 text-sm text-[#EDE6D6] hover:bg-[#14110F] cursor-pointer transition-colors">
+                    <input type="checkbox" value="Medium" class="mr-3 rounded border-[#3A332B] bg-[#0D1117] accent-[#C98A2C] focus:ring-[#C98A2C] filter-sev" onchange="applyFilters()"> Medium
+                  </label>
+                  <label class="flex items-center px-4 py-2 text-sm text-[#EDE6D6] hover:bg-[#14110F] cursor-pointer transition-colors">
+                    <input type="checkbox" value="Low" class="mr-3 rounded border-[#3A332B] bg-[#0D1117] accent-[#4C7A6B] focus:ring-[#4C7A6B] filter-sev" onchange="applyFilters()"> Low
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom MITRE Dropdown -->
+            <div class="relative inline-block text-left" id="dropdown-mitre">
+              <button type="button" onclick="toggleDropdown('menu-mitre')" class="bg-[#14110F] hover:bg-[#1E1A16] text-[#EDE6D6] hover:text-[#EDE6D6] px-3 py-1.5 rounded-sm border border-[#3A332B] font-mono text-[12px] flex items-center space-x-1.5 transition-colors">
+                <span>MITRE Technique <span id="mitre-count" class="text-[#C98A2C] font-medium"></span></span>
+                <span class="material-symbols-outlined text-[16px] opacity-70">arrow_drop_down</span>
+              </button>
+              <div id="menu-mitre" class="hidden absolute right-0 z-50 mt-2 w-72 origin-top-right rounded-sm bg-[#1E1A16] border border-[#3A332B] shadow-none focus:outline-none max-h-64 overflow-y-auto custom-scrollbar">
+                <div class="py-1" id="mitre-options">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+            </div>
+            <button class="p-1.5 rounded-sm bg-[#14110F] text-[#8B949E] hover:text-[#EDE6D6] border border-[#3A332B]" title="Refresh Stream" onclick="loadDashboard()">
+              <span class="material-symbols-outlined text-[18px]">refresh</span>
+            </button>
+          </div>
+        </div>
+        <!-- Cards container — populated by JS -->
+        <div id="incident-cards" class="flex flex-col space-y-3"></div>
+      </div>
+
+      <!-- RIGHT: Charts -->
+      <div class="lg:col-span-4 flex flex-col space-y-gutter">
+
+        <!-- Bar chart -->
+        <div class="bg-[#1E1A16] border border-[#3A332B] rounded-sm p-6 ">
+          <div class="flex items-center justify-between pb-4 border-b border-[#3A332B]">
+            <div>
+              <h3 class="font-serif text-[16px] font-bold text-[#EDE6D6]">Alert Noise Reduction</h3>
+              <p class="font-mono text-[10px] text-[#8B949E] mt-0.5">Compression Factor Overview</p>
+            </div>
+            <span id="bar-badge" class="bg-[#4C7A6B]/10 text-[#4C7A6B] border border-[#4C7A6B]/30 font-mono text-[11px] px-2 py-0.5 rounded-sm font-bold">—</span>
+          </div>
+          <div class="pt-6 pb-2">
+            <div class="h-56 flex items-end justify-around gap-6 px-4 relative border-b border-[#3A332B]">
+              <div class="absolute inset-x-0 top-0    border-t border-dashed border-[#3A332B]/60 pointer-events-none"></div>
+              <div class="absolute inset-x-0 top-1/4  border-t border-dashed border-[#3A332B]/60 pointer-events-none"></div>
+              <div class="absolute inset-x-0 top-2/4  border-t border-dashed border-[#3A332B]/60 pointer-events-none"></div>
+              <div class="absolute inset-x-0 top-3/4  border-t border-dashed border-[#3A332B]/60 pointer-events-none"></div>
+              <!-- Red bar -->
+              <div class="flex flex-col items-center flex-1 max-w-[84px] h-full justify-end z-10 group">
+                <span id="bar-raw-val" class="font-mono text-[11px] text-[#C1442E] font-bold mb-1.5">—</span>
+                <div id="bar-raw" style="height:0%" class="bar-fill w-full bg-[#C1442E] border-t border-x border-[#C1442E] transition-all "></div>
+              </div>
+              <!-- Green bar -->
+              <div class="flex flex-col items-center flex-1 max-w-[84px] h-full justify-end z-10 group">
+                <span id="bar-inc-val" class="font-mono text-[11px] text-[#4C7A6B] font-bold mb-1.5">—</span>
+                <div id="bar-inc" style="height:0%" class="bar-fill w-full bg-[#4C7A6B] border-t border-x border-[#4C7A6B] transition-all "></div>
+              </div>
+            </div>
+            <div class="flex justify-around px-4 pt-3 font-mono text-[11px] text-[#8B949E]">
+              <div class="text-center flex-1 max-w-[84px]">
+                <span class="text-[#EDE6D6] font-medium block">Raw Alerts</span>
+                <span id="bar-raw-lbl" class="text-[10px] text-[#8B949E]">—</span>
+              </div>
+              <div class="text-center flex-1 max-w-[84px]">
+                <span class="text-[#4C7A6B] font-medium block">Incidents</span>
+                <span id="bar-inc-lbl" class="text-[10px] text-[#8B949E]">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Donut chart -->
+        <div class="bg-[#1E1A16] border border-[#3A332B] rounded-sm p-6 ">
+          <div class="flex items-center justify-between pb-3 border-b border-[#3A332B]">
+            <div>
+              <h3 class="font-serif text-[16px] font-bold text-[#EDE6D6]">Severity Breakdown</h3>
+              <p class="font-mono text-[10px] text-[#8B949E] mt-0.5">Distribution across clustered incidents</p>
+            </div>
+            <span class="material-symbols-outlined text-outline text-[18px]">donut_large</span>
+          </div>
+          <div class="pt-5 pb-3 flex flex-col items-center justify-center">
+            <div class="relative w-44 h-44 flex items-center justify-center">
+              <svg class="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" fill="transparent" r="38" stroke="#21262D" stroke-width="12"/>
+                <circle id="donut-high" class="donut-seg" cx="50" cy="50" fill="transparent" r="38" stroke="#C1442E" stroke-dasharray="0 238.76" stroke-dashoffset="0"      stroke-width="12"/>
+                <circle id="donut-med"  class="donut-seg" cx="50" cy="50" fill="transparent" r="38" stroke="#C98A2C" stroke-dasharray="0 238.76" stroke-dashoffset="0"      stroke-width="12"/>
+                <circle id="donut-low"  class="donut-seg" cx="50" cy="50" fill="transparent" r="38" stroke="#4C7A6B" stroke-dasharray="0 238.76" stroke-dashoffset="0"      stroke-width="12"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                <span id="donut-center" class="font-serif text-[42px] font-bold text-[#EDE6D6]">—</span>
+                <span class="font-mono text-[10px] text-[#8B949E]">Incidents</span>
+              </div>
+            </div>
+            <!-- Legend -->
+            <div class="w-full grid grid-cols-3 gap-2 mt-5 pt-4 border-t border-[#3A332B] text-center font-mono text-[11px]">
+              <div class="flex flex-col items-center">
+                <div class="flex items-center space-x-1.5 mb-0.5"><span class="w-2 h-2 rounded-none bg-[#C1442E]"></span><span class="text-[#8B949E]">High</span></div>
+                <span id="leg-high-n" class="text-[#EDE6D6] font-bold">—</span>
+                <span id="leg-high-p" class="text-[10px] text-[#8B949E]">—</span>
+              </div>
+              <div class="flex flex-col items-center">
+                <div class="flex items-center space-x-1.5 mb-0.5"><span class="w-2 h-2 rounded-none bg-[#C98A2C]"></span><span class="text-[#8B949E]">Medium</span></div>
+                <span id="leg-med-n" class="text-[#EDE6D6] font-bold">—</span>
+                <span id="leg-med-p" class="text-[10px] text-[#8B949E]">—</span>
+              </div>
+              <div class="flex flex-col items-center">
+                <div class="flex items-center space-x-1.5 mb-0.5"><span class="w-2 h-2 rounded-none bg-[#4C7A6B]"></span><span class="text-[#8B949E]">Low</span></div>
+                <span id="leg-low-n" class="text-[#EDE6D6] font-bold">—</span>
+                <span id="leg-low-p" class="text-[10px] text-[#8B949E]">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /right col -->
+    </section>
+  </div><!-- /state-dashboard -->
+
+</main>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────
+// LIVE CLOCK
+// ─────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const el = document.getElementById('live-utc');
+  if (el) el.textContent = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─────────────────────────────────────────────
+// ACCORDION
+// ─────────────────────────────────────────────
+let _openCard = null; let _initialChartRender = true;
+function toggleCard(id) {
+  const card = document.getElementById(id);
+  const body = document.getElementById(id + '-body');
+  if (!card || !body) return;
+  const isOpen = card.classList.contains('open');
+  if (_openCard && _openCard !== id) {
+    const pc = document.getElementById(_openCard);
+    const pb = document.getElementById(_openCard + '-body');
+    if (pc && pb) { pc.classList.remove('open'); pb.classList.remove('open'); }
+    _openCard = null;
+  }
+  if (isOpen) {
+    card.classList.remove('open'); body.classList.remove('open'); _openCard = null;
+  } else {
+    card.classList.add('open'); body.classList.add('open'); _openCard = id;
+  }
+}
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function fmtNum(n) { return Number(n).toLocaleString(); }
+
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function timeAgo(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.max(0, Math.floor(diff / 60000));
+  if (mins < 60)  return `${mins} min ago`;
+  const h = Math.floor(mins / 60);
+  if (h  < 24)   return `${h}h ${mins % 60}m ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+// Severity colour tokens
+const SEV = {
+  High:   { dot: 'bg-[#C1442E]', badge: 'text-[#C1442E] border-current', alert: 'text-[#C1442E]' },
+  Medium: { dot: 'bg-[#C98A2C]', badge: 'text-[#C98A2C] border-current', alert: 'text-[#C98A2C]' },
+  Low:    { dot: 'bg-[#4C7A6B]', badge: 'text-[#4C7A6B] border-current', alert: 'text-[#4C7A6B]' }
+};
+
+// ─────────────────────────────────────────────
+// RENDER: single incident card
+// ─────────────────────────────────────────────
+function renderCard(inc) {
+  const s   = SEV[inc.severity] || SEV.Low;
+  const cid = 'card-' + escHtml(inc.incident_id);
+  const rows = (inc.raw_alerts || []).map(a => `
+    <div class="raw-alert-row">
+      <span class="text-[#8B949E] w-28 flex-shrink-0">${escHtml(a.timestamp)}</span>
+      <span class="${s.alert} font-medium">${escHtml(a.alert_type)}</span>
+      <span class="text-[#EDE6D6]">${escHtml(a.description)}</span>
+    </div>`).join('');
+
+  return `
+  <div id="${cid}" style="--sev-color: ${s.hex}" class="incident-card bg-[#1E1A16] border border-[#3A332B] rounded-sm  transition-colors hover:border-[#8B949E] overflow-hidden ${inc._isNew ? 'new-incident' : ''}" onclick="toggleCard('${cid}')">
+    <div class="flex items-start justify-between gap-3 p-4 cursor-pointer select-none">
+      <div class="flex items-center space-x-3 min-w-0">
+        <span class="w-1 h-5 ${s.dot} flex-shrink-0"></span>
+        <span class="font-serif text-[16px] font-semibold text-[#EDE6D6] truncate">${escHtml(inc.title)}</span>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <span class="${s.alert} bg-transparent font-mono text-[11px] px-2 py-0.5 border border-current rounded-sm flex-shrink-0">${escHtml(inc.mitre_id)}</span>
+        <svg class="chevron w-4 h-4 text-[#8B949E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </div>
+    </div>
+    <div class="px-4 pb-3 -mt-1 flex flex-wrap items-center gap-x-2 text-[#8B949E] font-mono text-[12px]">
+      <span>Asset: <code class="font-mono text-[10px] bg-[#14110F] text-[#EDE6D6] px-1.5 py-0.5 rounded border border-[#3A332B]">${escHtml(inc.asset)}</code></span>
+      <span>·</span><span class="text-[#EDE6D6] font-medium">${fmtNum(inc.alert_count)} alerts grouped</span>
+      <span>·</span><span>${timeAgo(inc.timestamp)}</span>
+    </div>
+    <div class="incident-body" id="${cid}-body">
+      <div class="mx-4 mb-4 mt-1 border-t border-[#3A332B] pt-4 flex flex-col gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-symbols-outlined text-[14px] text-[#EDE6D6]">auto_awesome</span>
+            <span class="font-mono text-[11px] text-[#EDE6D6]">AI Summary</span>
+          </div>
+          <p class="font-mono text-[12px] text-[#EDE6D6] leading-relaxed">${escHtml(inc.ai_summary)}</p>
+        </div>
+        <div>
+          <span class="font-mono text-[11px] text-[#8B949E]">Grouped Raw Alerts</span>
+          <div class="mt-2 bg-[#0D1117] rounded-sm border border-[#3A332B] px-3 py-1 font-mono text-[10px]">${rows}</div>
+        </div>
+        <p class="font-mono text-[12px]">
+          <span class="text-[#EDE6D6] font-semibold">Recommended Action:</span>
+          <span class="text-[#EDE6D6]"> ${escHtml(inc.recommended_action)}</span>
+        </p>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+// RENDER: bar chart
+// ─────────────────────────────────────────────
+function renderBarChart(totalAlerts, totalIncidents) {
+  const pct = totalAlerts > 0
+    ? ((1 - totalIncidents / totalAlerts) * 100).toFixed(1)
+    : '0.0';
+  const incH = totalAlerts > 0
+    ? Math.max(5, (totalIncidents / totalAlerts) * 95).toFixed(1)
+    : 5;
+
+  document.getElementById('bar-badge').textContent    = `-${pct}%`;
+  document.getElementById('bar-raw-val').textContent  = fmtNum(totalAlerts);
+  document.getElementById('bar-inc-val').textContent  = fmtNum(totalIncidents);
+  document.getElementById('bar-raw-lbl').textContent  = fmtNum(totalAlerts);
+  document.getElementById('bar-inc-lbl').textContent  = `${totalIncidents} Triaged`;
+
+  const r = document.getElementById('bar-raw');
+  const i = document.getElementById('bar-inc');
+  if (_initialChartRender) {
+    requestAnimationFrame(() => setTimeout(() => {
+      r.style.height = '95%'; i.style.height = `${incH}%`;
+    }, 80));
+  } else {
+    r.style.transition = 'none'; i.style.transition = 'none';
+    r.style.height = '95%'; i.style.height = `${incH}%`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// RENDER: donut chart
+// ─────────────────────────────────────────────
+function renderDonut(highN, medN, lowN) {
+  const total = highN + medN + lowN;
+  const C = 2 * Math.PI * 38; // circumference ≈ 238.76
+  const GAP = 2;
+
+  document.getElementById('donut-center').textContent = total;
+
+  function seg(id, count, offset) {
+    const arc = total > 0 ? (count / total) * C : 0;
+    const el  = document.getElementById(id);
+    el.setAttribute('stroke-dasharray',  `${arc.toFixed(2)} ${(C - arc).toFixed(2)}`);
+    el.setAttribute('stroke-dashoffset', offset.toFixed(2));
+  }
+
+  const highArc = total > 0 ? (highN / total) * C : 0;
+  const medArc  = total > 0 ? (medN  / total) * C : 0;
+
+  if (_initialChartRender) {
+    setTimeout(() => {
+      seg('donut-high', highN, 0);
+      seg('donut-med',  medN,  -(highArc + GAP));
+      seg('donut-low',  lowN,  -(highArc + medArc + GAP * 2));
+    }, 150);
+  } else {
+    document.getElementById('donut-high').style.transition = 'none';
+    document.getElementById('donut-med').style.transition = 'none';
+    document.getElementById('donut-low').style.transition = 'none';
+    seg('donut-high', highN, 0);
+    seg('donut-med',  medN,  -(highArc + GAP));
+    seg('donut-low',  lowN,  -(highArc + medArc + GAP * 2));
+  }
+
+  function pct(n) { return total > 0 ? `(${Math.round(n / total * 100)}%)` : '(0%)'; }
+  document.getElementById('leg-high-n').textContent = highN;
+  document.getElementById('leg-high-p').textContent = pct(highN);
+  document.getElementById('leg-med-n').textContent  = medN;
+  document.getElementById('leg-med-p').textContent  = pct(medN);
+  document.getElementById('leg-low-n').textContent  = lowN;
+  document.getElementById('leg-low-p').textContent  = pct(lowN);
+}
+
+// ─────────────────────────────────────────────
+// RENDER: full dashboard from incidents array
+// ─────────────────────────────────────────────
+function renderDashboard(incidents) {
+  document.getElementById('state-loading').style.display = 'none'; setTimeout(() => _initialChartRender = false, 1000);
+
+  if (!incidents || incidents.length === 0) {
+    document.getElementById('state-empty').style.display = '';
+    return;
+  }
+
+  document.getElementById('state-dashboard').style.display = '';
+
+  // ── Derived values ────────────────────────
+  const totalAlerts    = incidents.reduce((s, i) => s + (i.alert_count || 0), 0);
+  const totalIncidents = incidents.length;
+  const highN = incidents.filter(i => i.severity === 'High').length;
+  const medN  = incidents.filter(i => i.severity === 'Medium').length;
+  const lowN  = incidents.filter(i => i.severity === 'Low').length;
+  const savePct = totalAlerts > 0
+    ? ((1 - totalIncidents / totalAlerts) * 100).toFixed(1)
+    : '0.0';
+  const density = totalIncidents > 0
+    ? (totalAlerts / totalIncidents).toFixed(1)
+    : '—';
+  // Rough MTTR estimate: 0.1 hr saved per reduced alert
+  const mttr = (((totalAlerts - totalIncidents) * 0.1) / 60).toFixed(1);
+
+  // ── Hero ──────────────────────────────────
+  document.getElementById('hero-alerts').textContent    = `${fmtNum(totalAlerts)} Alerts`;
+  document.getElementById('hero-incidents').textContent = `${totalIncidents} Incidents`;
+  document.getElementById('hero-subtitle').innerHTML    =
+    `AI clustering reduced alert noise by <span class="text-[#EDE6D6] font-medium">${savePct}%</span> across edge telemetry gateways.`;
+
+  // ── KPI tiles ─────────────────────────────
+  document.getElementById('kpi-alerts').textContent   = fmtNum(totalAlerts);
+  document.getElementById('kpi-incidents').textContent= totalIncidents;
+  document.getElementById('kpi-density').textContent  = `-${density}x density`;
+  document.getElementById('kpi-high').textContent     = highN;
+  document.getElementById('kpi-saved').textContent    = `${savePct}%`;
+  document.getElementById('kpi-mttr').textContent     = `~${mttr} hrs MTTR`;
+
+  // Feed rendering is now handled by renderFeed() based on active filters
+
+
+  // ── Charts ────────────────────────────────
+  renderBarChart(totalAlerts, totalIncidents);
+  renderDonut(highN, medN, lowN);
+}
+
+// ─────────────────────────────────────────────
+// DATA LOADING
+// Reads the inline <script id="dashboard-data"> block.
+// Works on file:// and over HTTP with no server needed.
+// To update data: edit the JSON block near the bottom of this file.
+// ─────────────────────────────────────────────
+function loadDashboard() {
+  // Reset state
+  document.getElementById('state-loading').style.display   = '';
+  document.getElementById('state-empty').style.display     = 'none';
+  document.getElementById('state-dashboard').style.display = 'none';
+  _openCard = null;
+
+  try {
+    const el = document.getElementById('dashboard-data');
+    if (!el) throw new Error('Inline data block not found');
+    const data = JSON.parse(el.textContent);
+    window.allIncidents = data.incidents || [];
+    // Small delay so the loading spinner is visible briefly
+    setTimeout(() => {
+      renderDashboard(window.allIncidents);
+      populateMitreFilter(window.allIncidents);
+      applyFilters();
+    }, 300);
+  } catch (err) {
+    console.error('[SOC Dashboard] Failed to parse data:', err.message);
+    setTimeout(() => renderDashboard([]), 300);
+  }
+}
+
+// ─────────────────────────────────────────────
+// FILTER LOGIC
+// ─────────────────────────────────────────────
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('#dropdown-sev')) {
+    const el = document.getElementById('menu-sev');
+    if (el) el.classList.add('hidden');
+  }
+  if (!event.target.closest('#dropdown-mitre')) {
+    const el = document.getElementById('menu-mitre');
+    if (el) el.classList.add('hidden');
+  }
+});
+
+function toggleDropdown(id) {
+  document.getElementById(id).classList.toggle('hidden');
+}
+
+function populateMitreFilter(incidents) {
+  const mitreSet = new Map();
+  incidents.forEach(inc => {
+    if (inc.mitre_id) mitreSet.set(inc.mitre_id, inc.mitre_name || inc.mitre_id);
+  });
+  
+  let html = '';
+  mitreSet.forEach((name, id) => {
+    html += `
+      <label class="flex items-center px-4 py-2 text-sm text-[#EDE6D6] hover:bg-[#14110F] cursor-pointer transition-colors">
+        <input type="checkbox" value="${id}" class="mr-3 rounded border-[#3A332B] bg-[#0D1117] accent-[#C98A2C] focus:ring-[#C98A2C] filter-mitre" onchange="applyFilters()">
+        <span class="truncate block w-full" title="${id} - ${name}">${id} - ${name}</span>
+      </label>
+    `;
+  });
+  document.getElementById('mitre-options').innerHTML = html;
+}
+
+function applyFilters() {
+  const sevBoxes = document.querySelectorAll('.filter-sev:checked');
+  const selectedSevs = Array.from(sevBoxes).map(cb => cb.value);
+  
+  const mitreBoxes = document.querySelectorAll('.filter-mitre:checked');
+  const selectedMitres = Array.from(mitreBoxes).map(cb => cb.value);
+
+  // Update button counts
+  document.getElementById('sev-count').textContent = selectedSevs.length > 0 ? `(${selectedSevs.length})` : '';
+  document.getElementById('mitre-count').textContent = selectedMitres.length > 0 ? `(${selectedMitres.length})` : '';
+
+  const filtered = (window.allIncidents || []).filter(inc => {
+    const sevMatch = selectedSevs.length === 0 || selectedSevs.includes(inc.severity);
+    const mitreMatch = selectedMitres.length === 0 || selectedMitres.includes(inc.mitre_id);
+    return sevMatch && mitreMatch;
+  });
+
+  
+  const container = document.getElementById('incident-cards');
+  container.classList.remove('animate-filter');
+  void container.offsetWidth; // trigger reflow
+  container.classList.add('animate-filter');
+  
+  renderFeed(filtered);
+
+}
+
+function renderFeed(incidents) {
+  document.getElementById('feed-badge').textContent = `${incidents.length} Queued`;
+  
+  const container = document.getElementById('incident-cards');
+  if (incidents.length === 0) {
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center p-12 bg-[#1E1A16] rounded-sm border border-[#3A332B] text-[#8B949E] my-4 shadow-sm">
+        <span class="material-symbols-outlined text-[48px] mb-4 opacity-100">filter_list_off</span>
+        <h3 class="text-[#EDE6D6] font-serif text-[16px] font-semibold mb-1">No incidents match</h3>
+        <p class="font-mono text-[14px] text-center max-w-sm">Adjust your severity or MITRE technique filters to see more results.</p>
+        <button onclick="clearFilters()" class="mt-5 px-4 py-2 bg-[#14110F] hover:bg-[#1E1A16] text-[#EDE6D6] rounded-sm border border-[#3A332B] text-sm font-medium transition-colors shadow-sm">
+          Clear all filters
+        </button>
+      </div>`;
+  } else {
+    container.innerHTML = incidents.map(renderCard).join('');
+  }
+}
+
+function clearFilters() {
+  document.querySelectorAll('.filter-sev, .filter-mitre').forEach(cb => cb.checked = false);
+  applyFilters();
+}
+
+// Wait for the full document to parse before reading the inline data block.
+// Without this, <script id="dashboard-data"> hasn't been added to the DOM yet
+// when loadDashboard() runs, so getElementById returns null.
+document.addEventListener('DOMContentLoaded', loadDashboard);
+
+// ─────────────────────────────────────────────
+// POLLING (Auto-refresh)
+// ─────────────────────────────────────────────
+async function pollData() {
+  try {
+    const res = await fetch('./dashboard_data.json?_=' + Date.now());
+    if (!res.ok) return; // fail silently to avoid console spam on file://
+    const data = await res.json();
+    if (!data.incidents) return;
+    
+    // Check if data actually changed to avoid unnecessary re-renders
+    const oldStr = JSON.stringify((window.allIncidents || []).map(i => { const { _isNew, ...rest } = i; return rest; }));
+    const newStr = JSON.stringify(data.incidents);
+    
+    if (oldStr !== newStr) {
+      const oldIds = new Set((window.allIncidents || []).map(i => i.incident_id));
+      
+      data.incidents.forEach(inc => {
+        if (!oldIds.has(inc.incident_id)) {
+          inc._isNew = true;
+          // clear the flag after animation finishes so it doesn't replay on filter changes
+          setTimeout(() => { inc._isNew = false; }, 3500);
+        }
+      });
+      
+      window.allIncidents = data.incidents;
+      
+      // Preserve accordion state
+      const currentlyOpen = _openCard;
+      
+      renderDashboard(window.allIncidents);
+      populateMitreFilter(window.allIncidents);
+      applyFilters();
+      
+      if (currentlyOpen) {
+        // Re-open the previously opened card without transition if possible
+        const card = document.getElementById(currentlyOpen);
+        const body = document.getElementById(currentlyOpen + '-body');
+        if (card && body) {
+          card.classList.add('open');
+          body.classList.add('open');
+          _openCard = currentlyOpen;
+        }
+      }
+    }
+  } catch (e) {
+    // silent catch for file:// CORS errors
+  }
+}
+setInterval(pollData, 5000);
+</script>
+
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  INLINE DATA — edit this block to update all dashboard values.  ║
+  ║  Used automatically when the file is opened via file://.        ║
+  ║  When served over HTTP, dashboard_data.json is loaded instead.  ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+<script id="dashboard-data" type="application/json">
+{
+  "meta": {
+    "generated_at": "2026-09-22T09:43:58Z",
+    "source": "Threatstack AI Clustering Engine v4.1.8"
+  },
+  "incidents": [
+    {
+      "incident_id": "INC-2609-001",
+      "severity": "High",
+      "title": "Credential Stuffing Attack",
+      "asset": "auth-server-01",
+      "mitre_id": "T1110.003",
+      "mitre_name": "Brute Force: Password Spraying",
+      "alert_count": 847,
+      "timestamp": "2026-09-22T09:41:00Z",
+      "ai_summary": "An automated credential stuffing campaign targeted auth-server-01 using a rotating list of breached username/password pairs, generating 847 login failure events in under 3 minutes. The attack pattern matches known Mirai botnet sub-cluster behaviour with source IPs spanning 14 distinct ASNs. No successful authentications were recorded, but the velocity suggests an imminent escalation to credential spraying across adjacent services.",
+      "recommended_action": "Immediately block offending IP ranges at the WAF layer, enforce MFA on all authentication endpoints, and escalate to Tier-2 for threat-intel enrichment on the credential list origin.",
+      "raw_alerts": [
+        { "timestamp": "09:41:02 UTC", "alert_type": "AUTH_FAIL",   "description": "Invalid password - user: admin" },
+        { "timestamp": "09:41:05 UTC", "alert_type": "AUTH_FAIL",   "description": "Invalid password - user: root" },
+        { "timestamp": "09:41:09 UTC", "alert_type": "RATE_LIMIT",  "description": "Login rate threshold exceeded (>200/min)" },
+        { "timestamp": "09:41:14 UTC", "alert_type": "GEO_ANOMALY", "description": "Requests from 14 countries simultaneously" },
+        { "timestamp": "09:43:58 UTC", "alert_type": "AUTH_FAIL",   "description": "+843 similar events suppressed" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-002",
+      "severity": "High",
+      "title": "Lateral Movement Detected",
+      "asset": "workstation-44",
+      "mitre_id": "T1021.002",
+      "mitre_name": "Remote Services: SMB/Windows Admin Shares",
+      "alert_count": 312,
+      "timestamp": "2026-09-22T09:36:11Z",
+      "ai_summary": "A threat actor on workstation-44 leveraged SMB (port 445) to propagate laterally across the internal network, authenticating to 7 additional hosts using harvested NTLM hashes. The pattern is consistent with Pass-the-Hash lateral movement following an initial compromise. Affected hosts include finance-ws-03 and hr-desktop-08, both of which hold sensitive data classifications.",
+      "recommended_action": "Isolate workstation-44 from the network immediately. Force NTLM hash rotation on all affected accounts, enable SMB signing enforcement via GPO, and conduct forensic memory capture on the compromised host.",
+      "raw_alerts": [
+        { "timestamp": "09:36:11 UTC", "alert_type": "SMB_CONNECT", "description": "Outbound SMB to finance-ws-03:445" },
+        { "timestamp": "09:36:18 UTC", "alert_type": "NTLM_RELAY",  "description": "Hash relay detected - workstation-44 to hr-desktop-08" },
+        { "timestamp": "09:36:45 UTC", "alert_type": "ADMIN_SHARE", "description": "Access to ADMIN$ on 5 additional hosts" },
+        { "timestamp": "09:38:02 UTC", "alert_type": "SMB_CONNECT", "description": "+308 similar lateral SMB events" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-003",
+      "severity": "Medium",
+      "title": "Suspicious PowerShell Execution",
+      "asset": "win-desktop-12",
+      "mitre_id": "T1059.001",
+      "mitre_name": "Command and Scripting Interpreter: PowerShell",
+      "alert_count": 156,
+      "timestamp": "2026-09-22T09:31:03Z",
+      "ai_summary": "PowerShell was invoked with -EncodedCommand and -ExecutionPolicy Bypass flags on win-desktop-12, spawned as a child process of winword.exe - a classic macro-based initial access indicator. The decoded payload attempted to download a secondary stage from an external C2 domain. AMSI telemetry blocked execution at the script-block level, but persistence registry keys were partially written before containment.",
+      "recommended_action": "Quarantine win-desktop-12, remove the partial persistence registry key, and scan all Office documents opened in the past 24 hours for malicious macros. Submit the encoded payload to sandboxed detonation for full IOC extraction.",
+      "raw_alerts": [
+        { "timestamp": "09:31:03 UTC", "alert_type": "PROC_SPAWN", "description": "winword.exe spawned powershell.exe -EncodedCommand" },
+        { "timestamp": "09:31:04 UTC", "alert_type": "AMSI_BLOCK", "description": "Malicious script block detected and blocked" },
+        { "timestamp": "09:31:06 UTC", "alert_type": "REG_WRITE",  "description": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run modified" },
+        { "timestamp": "09:31:09 UTC", "alert_type": "NET_CONN",   "description": "+153 C2 beacon attempts suppressed" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-004",
+      "severity": "Medium",
+      "title": "Anomalous Data Exfiltration",
+      "asset": "file-server-03",
+      "mitre_id": "T1041",
+      "mitre_name": "Exfiltration Over C2 Channel",
+      "alert_count": 203,
+      "timestamp": "2026-09-22T09:25:14Z",
+      "ai_summary": "Unusual outbound data transfer of 4.7 GB was observed from file-server-03 to an external IP address in Romania over port 443, peaking at 380 Mbps - 22x above the host 90-day baseline. The source process was identified as a renamed instance of rclone.exe, a cloud sync utility frequently weaponised for data staging and exfiltration. Transferred paths include /finance/Q3_reports/ and /hr/payroll/.",
+      "recommended_action": "Block the destination IP at the perimeter firewall, kill the rclone process, and freeze the compromised service account. Initiate a data breach assessment per GDPR Article 33 obligations and notify the DPO within 24 hours.",
+      "raw_alerts": [
+        { "timestamp": "09:25:14 UTC", "alert_type": "DLP_TRIGGER", "description": "Large file transfer started - 4.7 GB outbound" },
+        { "timestamp": "09:25:15 UTC", "alert_type": "PROC_DETECT", "description": "rclone.exe (renamed) spawned by svchost.exe" },
+        { "timestamp": "09:25:22 UTC", "alert_type": "NET_ANOMALY", "description": "Egress to 185.220.101.47:443 (RO) - 22x baseline" },
+        { "timestamp": "09:26:01 UTC", "alert_type": "DLP_TRIGGER", "description": "+200 file-read events on sensitive paths" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-005",
+      "severity": "Low",
+      "title": "Port Scan from Internal Host",
+      "asset": "dev-vm-07",
+      "mitre_id": "T1046",
+      "mitre_name": "Network Service Discovery",
+      "alert_count": 89,
+      "timestamp": "2026-09-22T09:18:44Z",
+      "ai_summary": "A TCP SYN sweep was initiated from dev-vm-07 targeting 89 internal IP addresses across ports 22, 80, 443, and 3389 over a 4-minute window, consistent with an automated network discovery tool. This may be legitimate developer reconnaissance, but the off-hours timing (02:25 UTC) and the scanning of production subnets from a dev environment elevates this to low-severity review. No exploitation attempts were observed following the scan.",
+      "recommended_action": "Verify with the dev team whether this scan was authorised. If unplanned, apply network segmentation to isolate dev-vm-07 from production subnets and review the host for installed scanning utilities such as nmap or masscan.",
+      "raw_alerts": [
+        { "timestamp": "09:18:44 UTC", "alert_type": "PORT_SCAN", "description": "SYN sweep to 10.0.1.0/24 - port 22" },
+        { "timestamp": "09:19:01 UTC", "alert_type": "PORT_SCAN", "description": "SYN sweep to 10.0.2.0/24 - ports 80, 443" },
+        { "timestamp": "09:20:33 UTC", "alert_type": "PORT_SCAN", "description": "SYN sweep to prod subnet - port 3389 (RDP)" },
+        { "timestamp": "09:22:14 UTC", "alert_type": "PORT_SCAN", "description": "+86 similar sweep events suppressed" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-006",
+      "severity": "Low",
+      "title": "Failed SSH Login Attempts",
+      "asset": "linux-prod-02",
+      "mitre_id": "T1078",
+      "mitre_name": "Valid Accounts",
+      "alert_count": 134,
+      "timestamp": "2026-09-22T09:12:07Z",
+      "ai_summary": "A low-velocity SSH brute-force attempt targeted linux-prod-02 with 134 failed authentication events from a single source IP (45.33.32.156, AS63949). The slow rate of approximately 4.5 attempts per minute was likely designed to evade rate-limiting controls. Targeted usernames include ubuntu, ec2-user, and deploy - common cloud-default usernames. No successful login was recorded.",
+      "recommended_action": "Add 45.33.32.156 to the SSH deny list via fail2ban or firewall rule, disable password authentication in favour of key-based SSH only, and confirm no default usernames exist on linux-prod-02.",
+      "raw_alerts": [
+        { "timestamp": "09:12:07 UTC", "alert_type": "SSH_FAIL", "description": "Invalid user ubuntu from 45.33.32.156" },
+        { "timestamp": "09:12:21 UTC", "alert_type": "SSH_FAIL", "description": "Invalid user ec2-user from 45.33.32.156" },
+        { "timestamp": "09:12:34 UTC", "alert_type": "SSH_FAIL", "description": "Invalid user deploy from 45.33.32.156" },
+        { "timestamp": "09:12:49 UTC", "alert_type": "SSH_FAIL", "description": "+131 further attempts from same IP" }
+      ]
+    }
+  ]
+}
+</script>
+</body></html>

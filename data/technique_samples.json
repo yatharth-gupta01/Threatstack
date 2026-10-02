@@ -1,0 +1,29 @@
+{
+  "T1110.003": {
+    "process": "MSSQLSERVER",
+    "command_line": "N/A",
+    "source_ip": "10.0.2.17",
+    "username": "sa",
+    "detail_text": "Multiple failed SQL Server login attempts for user 'sa' originating from client IP 10.0.2.17 due to password mismatch."
+  },
+  "T1021.002": {
+    "process": "System",
+    "command_line": "N/A",
+    "source_ip": "10.0.2.15",
+    "file_path": "\\??\\C:\\",
+    "detail_text": "Suspicious remote file share access detected from IP 10.0.2.15 targeting the C$ administrative share."
+  },
+  "T1059.001": {
+    "process": "powershell.exe",
+    "command_line": "function Memory($path) { ... $MiniDumpWriteDump.Invoke ... }",
+    "file_path": "$DumpFilePath\\$ProcessFileName.dmp",
+    "detail_text": "PowerShell script execution detected dynamically invoking MiniDumpWriteDump to extract credentials from the lsass process into a local dump file."
+  },
+  "T1041": {
+    "process": "C:\\Windows\\System32\\ftp.exe",
+    "command_line": "\"C:\\Windows\\System32\\ftp.exe\" -s:c:\\users\\ieuser\\appdata\\local\\temp\\ftp.txt",
+    "file_path": "c:\\users\\ieuser\\appdata\\local\\temp\\ftp.txt",
+    "hash": "SHA1=EE8CBF12D87C4D388F09B4F69BED2E91682920B5",
+    "detail_text": "Automated exfiltration of data over FTP using the built-in ftp.exe utility executing a hidden command script from the Temp directory."
+  }
+}

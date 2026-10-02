@@ -1,0 +1,117 @@
+﻿{
+  "meta": {
+    "generated_at": "2026-09-22T09:43:58Z",
+    "source": "Threatstack AI Clustering Engine v4.1.8"
+  },
+  "incidents": [
+    {
+      "incident_id": "INC-2609-001",
+      "severity": "High",
+      "title": "Credential Stuffing Attack",
+      "asset": "auth-server-01",
+      "mitre_id": "T1110.003",
+      "mitre_name": "Brute Force: Password Spraying",
+      "alert_count": 847,
+      "timestamp": "2026-09-22T09:41:00Z",
+      "ai_summary": "An automated credential stuffing campaign targeted auth-server-01 using a rotating list of breached username/password pairs, generating 847 login failure events in under 3 minutes. The attack pattern matches known Mirai botnet sub-cluster behaviour with source IPs spanning 14 distinct ASNs. No successful authentications were recorded, but the velocity suggests an imminent escalation to credential spraying across adjacent services.",
+      "recommended_action": "Immediately block offending IP ranges at the WAF layer, enforce MFA on all authentication endpoints, and escalate to Tier-2 for threat-intel enrichment on the credential list origin.",
+      "raw_alerts": [
+        { "timestamp": "09:41:02 UTC", "alert_type": "AUTH_FAIL",   "description": "Invalid password - user: admin" },
+        { "timestamp": "09:41:05 UTC", "alert_type": "AUTH_FAIL",   "description": "Invalid password - user: root" },
+        { "timestamp": "09:41:09 UTC", "alert_type": "RATE_LIMIT",  "description": "Login rate threshold exceeded (>200/min)" },
+        { "timestamp": "09:41:14 UTC", "alert_type": "GEO_ANOMALY", "description": "Requests from 14 countries simultaneously" },
+        { "timestamp": "09:43:58 UTC", "alert_type": "AUTH_FAIL",   "description": "+843 similar events suppressed" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-002",
+      "severity": "High",
+      "title": "Lateral Movement Detected",
+      "asset": "workstation-44",
+      "mitre_id": "T1021.002",
+      "mitre_name": "Remote Services: SMB/Windows Admin Shares",
+      "alert_count": 312,
+      "timestamp": "2026-09-22T09:36:11Z",
+      "ai_summary": "A threat actor on workstation-44 leveraged SMB (port 445) to propagate laterally across the internal network, authenticating to 7 additional hosts using harvested NTLM hashes. The pattern is consistent with Pass-the-Hash lateral movement following an initial compromise. Affected hosts include finance-ws-03 and hr-desktop-08, both of which hold sensitive data classifications.",
+      "recommended_action": "Isolate workstation-44 from the network immediately. Force NTLM hash rotation on all affected accounts, enable SMB signing enforcement via GPO, and conduct forensic memory capture on the compromised host.",
+      "raw_alerts": [
+        { "timestamp": "09:36:11 UTC", "alert_type": "SMB_CONNECT", "description": "Outbound SMB to finance-ws-03:445" },
+        { "timestamp": "09:36:18 UTC", "alert_type": "NTLM_RELAY",  "description": "Hash relay detected - workstation-44 to hr-desktop-08" },
+        { "timestamp": "09:36:45 UTC", "alert_type": "ADMIN_SHARE", "description": "Access to ADMIN$ on 5 additional hosts" },
+        { "timestamp": "09:38:02 UTC", "alert_type": "SMB_CONNECT", "description": "+308 similar lateral SMB events" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-003",
+      "severity": "Medium",
+      "title": "Suspicious PowerShell Execution",
+      "asset": "win-desktop-12",
+      "mitre_id": "T1059.001",
+      "mitre_name": "Command and Scripting Interpreter: PowerShell",
+      "alert_count": 156,
+      "timestamp": "2026-09-22T09:31:03Z",
+      "ai_summary": "PowerShell was invoked with -EncodedCommand and -ExecutionPolicy Bypass flags on win-desktop-12, spawned as a child process of winword.exe - a classic macro-based initial access indicator. The decoded payload attempted to download a secondary stage from an external C2 domain. AMSI telemetry blocked execution at the script-block level, but persistence registry keys were partially written before containment.",
+      "recommended_action": "Quarantine win-desktop-12, remove the partial persistence registry key, and scan all Office documents opened in the past 24 hours for malicious macros. Submit the encoded payload to sandboxed detonation for full IOC extraction.",
+      "raw_alerts": [
+        { "timestamp": "09:31:03 UTC", "alert_type": "PROC_SPAWN", "description": "winword.exe spawned powershell.exe -EncodedCommand" },
+        { "timestamp": "09:31:04 UTC", "alert_type": "AMSI_BLOCK", "description": "Malicious script block detected and blocked" },
+        { "timestamp": "09:31:06 UTC", "alert_type": "REG_WRITE",  "description": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run modified" },
+        { "timestamp": "09:31:09 UTC", "alert_type": "NET_CONN",   "description": "+153 C2 beacon attempts suppressed" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-004",
+      "severity": "Medium",
+      "title": "Anomalous Data Exfiltration",
+      "asset": "file-server-03",
+      "mitre_id": "T1041",
+      "mitre_name": "Exfiltration Over C2 Channel",
+      "alert_count": 203,
+      "timestamp": "2026-09-22T09:25:14Z",
+      "ai_summary": "Unusual outbound data transfer of 4.7 GB was observed from file-server-03 to an external IP address in Romania over port 443, peaking at 380 Mbps - 22x above the host 90-day baseline. The source process was identified as a renamed instance of rclone.exe, a cloud sync utility frequently weaponised for data staging and exfiltration. Transferred paths include /finance/Q3_reports/ and /hr/payroll/.",
+      "recommended_action": "Block the destination IP at the perimeter firewall, kill the rclone process, and freeze the compromised service account. Initiate a data breach assessment per GDPR Article 33 obligations and notify the DPO within 24 hours.",
+      "raw_alerts": [
+        { "timestamp": "09:25:14 UTC", "alert_type": "DLP_TRIGGER", "description": "Large file transfer started - 4.7 GB outbound" },
+        { "timestamp": "09:25:15 UTC", "alert_type": "PROC_DETECT", "description": "rclone.exe (renamed) spawned by svchost.exe" },
+        { "timestamp": "09:25:22 UTC", "alert_type": "NET_ANOMALY", "description": "Egress to 185.220.101.47:443 (RO) - 22x baseline" },
+        { "timestamp": "09:26:01 UTC", "alert_type": "DLP_TRIGGER", "description": "+200 file-read events on sensitive paths" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-005",
+      "severity": "Low",
+      "title": "Port Scan from Internal Host - TEST",
+      "asset": "dev-vm-07",
+      "mitre_id": "T1046",
+      "mitre_name": "Network Service Discovery",
+      "alert_count": 89,
+      "timestamp": "2026-09-22T09:18:44Z",
+      "ai_summary": "A TCP SYN sweep was initiated from dev-vm-07 targeting 89 internal IP addresses across ports 22, 80, 443, and 3389 over a 4-minute window, consistent with an automated network discovery tool. This may be legitimate developer reconnaissance, but the off-hours timing (02:25 UTC) and the scanning of production subnets from a dev environment elevates this to low-severity review. No exploitation attempts were observed following the scan.",
+      "recommended_action": "Verify with the dev team whether this scan was authorised. If unplanned, apply network segmentation to isolate dev-vm-07 from production subnets and review the host for installed scanning utilities such as nmap or masscan.",
+      "raw_alerts": [
+        { "timestamp": "09:18:44 UTC", "alert_type": "PORT_SCAN", "description": "SYN sweep to 10.0.1.0/24 - port 22" },
+        { "timestamp": "09:19:01 UTC", "alert_type": "PORT_SCAN", "description": "SYN sweep to 10.0.2.0/24 - ports 80, 443" },
+        { "timestamp": "09:20:33 UTC", "alert_type": "PORT_SCAN", "description": "SYN sweep to prod subnet - port 3389 (RDP)" },
+        { "timestamp": "09:22:14 UTC", "alert_type": "PORT_SCAN", "description": "+86 similar sweep events suppressed" }
+      ]
+    },
+    {
+      "incident_id": "INC-2609-006",
+      "severity": "Low",
+      "title": "Failed SSH Login Attempts",
+      "asset": "linux-prod-02",
+      "mitre_id": "T1078",
+      "mitre_name": "Valid Accounts",
+      "alert_count": 134,
+      "timestamp": "2026-09-22T09:12:07Z",
+      "ai_summary": "A low-velocity SSH brute-force attempt targeted linux-prod-02 with 134 failed authentication events from a single source IP (45.33.32.156, AS63949). The slow rate of approximately 4.5 attempts per minute was likely designed to evade rate-limiting controls. Targeted usernames include ubuntu, ec2-user, and deploy - common cloud-default usernames. No successful login was recorded.",
+      "recommended_action": "Add 45.33.32.156 to the SSH deny list via fail2ban or firewall rule, disable password authentication in favour of key-based SSH only, and confirm no default usernames exist on linux-prod-02.",
+      "raw_alerts": [
+        { "timestamp": "09:12:07 UTC", "alert_type": "SSH_FAIL", "description": "Invalid user ubuntu from 45.33.32.156" },
+        { "timestamp": "09:12:21 UTC", "alert_type": "SSH_FAIL", "description": "Invalid user ec2-user from 45.33.32.156" },
+        { "timestamp": "09:12:34 UTC", "alert_type": "SSH_FAIL", "description": "Invalid user deploy from 45.33.32.156" },
+        { "timestamp": "09:12:49 UTC", "alert_type": "SSH_FAIL", "description": "+131 further attempts from same IP" }
+      ]
+    }
+  ]
+}
